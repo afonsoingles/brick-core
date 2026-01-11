@@ -27,3 +27,5 @@ RUN uv sync --frozen
 COPY . .
 
 EXPOSE 8000
+
+LABEL org.opencontainers.image.source https://github.com/afonsoingles/brick-core
