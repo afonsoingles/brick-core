@@ -1,0 +1,25 @@
+services:
+  api:
+    image: ghcr.io/afonsoingles/brick-core:latest
+    container_name: brick-core
+    restart: always
+
+    environment:
+      DOPPLER_TOKEN: ${DOPPLER_TOKEN}
+
+    command: >
+      doppler run --
+      gunicorn app.main:app
+      -k uvicorn.workers.UvicornWorker
+      -w 2
+      --bind 0.0.0.0:8000
+      --graceful-timeout 30
+      --timeout 60
+      --keep-alive 5
+
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
