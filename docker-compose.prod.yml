@@ -9,7 +9,7 @@ services:
 
     command: >
       doppler run --
-      gunicorn app.main:app
+      gunicorn main:app
       -k uvicorn.workers.UvicornWorker
       -w 2
       --bind 0.0.0.0:8000
