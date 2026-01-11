@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*.*.*'  # Any semantic version tag
 
 permissions:
   contents: read
@@ -27,7 +29,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push image
+      - name: Determine public-facing version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            # Tag push → use the tag as version
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            # Normal commit → get the latest tag (never "latest")
+            VERSION=$(git describe --tags --abbrev=0 || echo "0.0.0")
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION"
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -35,3 +49,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}:latest
+            ${{ github.ref_type == 'tag' && format('ghcr.io/{0}:{1}', github.repository, steps.version.outputs.version) || '' }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            APP_VERSION=${{ steps.version.outputs.version }}
