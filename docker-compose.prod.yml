@@ -1,5 +1,5 @@
 services:
-  api:
+  brick-core:
     image: ghcr.io/afonsoingles/brick-core:latest
     container_name: brick-core
     restart: always
