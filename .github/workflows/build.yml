@@ -39,7 +39,7 @@ jobs:
             # Normal commit → get the latest tag (never "latest")
             VERSION=$(git describe --tags --abbrev=0 || echo "0.0.0")
           fi
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "VERSION=$VERSION"
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
