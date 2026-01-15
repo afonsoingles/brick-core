@@ -13,8 +13,14 @@ routes = [
 [[env.production.email_routing.matchers]]
 pattern = "*@afonsoingles.dev"
 
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
 # Environment variables/secrets are set via Cloudflare Dashboard or .env file
 # Required secrets: WEBHOOK_URL, SENTRY_DSN (optional)
+
+[env.development]
+vars = { ENVIRONMENT = "development" }
 
 # Observability
 [observability]

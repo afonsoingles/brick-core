@@ -98,6 +98,7 @@ async function forwardToWebhook(emailData, webhookUrl) {
 export default Sentry.withSentry(
   (env) => ({
     dsn: env.SENTRY_DSN,
+    environment: env.ENVIRONMENT || 'development',
     enableLogs: true,
     sendDefaultPii: false,
   }),
