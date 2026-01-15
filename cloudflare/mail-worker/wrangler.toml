@@ -9,12 +9,10 @@ compatibility_flags = ["nodejs_compat"]
 routes = [
   { pattern = "*.afonsoingles.dev/**", zone_name = "afonsoingles.dev" }
 ]
+vars = { ENVIRONMENT = "production" }
 
 [[env.production.email_routing.matchers]]
 pattern = "*@afonsoingles.dev"
-
-[env.production]
-vars = { ENVIRONMENT = "production" }
 
 # Environment variables/secrets are set via Cloudflare Dashboard or .env file
 # Required secrets: WEBHOOK_URL, SENTRY_DSN (optional)
