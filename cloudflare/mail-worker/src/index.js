@@ -104,6 +104,7 @@ export default Sentry.withSentry(
   {
     async email(message, env, ctx) {
       Sentry.captureMessage(`Processing email from ${message.from} to ${message.to}`, 'info');
+      Sentry.metrics.increment('email.processed', 1);
 
       try {
         const emailData = await parseEmail(message);
@@ -115,11 +116,15 @@ export default Sentry.withSentry(
             `Failed to forward email: webhook returned ${webhookResponse.status}`,
             'warning'
           );
+          Sentry.metrics.increment('email.webhook_failed', 1);
+          Sentry.metrics.gauge('email.webhook_status_code', webhookResponse.status);
         } else {
           Sentry.captureMessage('Email successfully forwarded to webhook', 'info');
+          Sentry.metrics.increment('email.webhook_success', 1);
         }
       } catch (error) {
         Sentry.captureException(error);
+        Sentry.metrics.increment('email.error', 1);
         throw error;
       }
     },
