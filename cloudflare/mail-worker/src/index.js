@@ -104,30 +104,37 @@ export default Sentry.withSentry(
   }),
   {
     async email(message, env, ctx) {
-      Sentry.captureMessage(`Processing email from ${message.from} to ${message.to}`, 'info');
-      Sentry.metrics.increment('email.processed', 1);
+      return Sentry.withScope(async (scope) => {
+        scope.setTag('email.processed', true);
+        scope.setContext('email', {
+          from: message.from,
+          to: message.to,
+        });
 
-      try {
-        const emailData = await parseEmail(message);
-        
-        const webhookResponse = await forwardToWebhook(emailData, env.WEBHOOK_URL);
-        
-        if (!webhookResponse.ok) {
-          Sentry.captureMessage(
-            `Failed to forward email: webhook returned ${webhookResponse.status}`,
-            'warning'
-          );
-          Sentry.metrics.increment('email.webhook_failed', 1);
-          Sentry.metrics.gauge('email.webhook_status_code', webhookResponse.status);
-        } else {
-          Sentry.captureMessage('Email successfully forwarded to webhook', 'info');
-          Sentry.metrics.increment('email.webhook_success', 1);
+        Sentry.captureMessage(`Processing email from ${message.from} to ${message.to}`, 'info');
+
+        try {
+          const emailData = await parseEmail(message);
+          
+          const webhookResponse = await forwardToWebhook(emailData, env.WEBHOOK_URL);
+          
+          if (!webhookResponse.ok) {
+            scope.setTag('webhook.status', `${webhookResponse.status}`);
+            scope.setTag('webhook.success', false);
+            Sentry.captureMessage(
+              `Failed to forward email: webhook returned ${webhookResponse.status}`,
+              'warning'
+            );
+          } else {
+            scope.setTag('webhook.success', true);
+            Sentry.captureMessage('Email successfully forwarded to webhook', 'info');
+          }
+        } catch (error) {
+          scope.setTag('email.error', true);
+          Sentry.captureException(error);
+          throw error;
         }
-      } catch (error) {
-        Sentry.captureException(error);
-        Sentry.metrics.increment('email.error', 1);
-        throw error;
-      }
+      });
     },
   }
 );
