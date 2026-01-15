@@ -71,14 +71,20 @@ async function parseEmail(message) {
   };
 }
 
-async function forwardToWebhook(emailData, webhookUrl) {
+async function forwardToWebhook(emailData, webhookUrl, webhookToken) {
   try {
+    const headers = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Brick-Email-Worker/1.0',
+    };
+
+    if (webhookToken) {
+      headers['Authorization'] = `Bearer ${webhookToken}`;
+    }
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Brick-Email-Worker/1.0',
-      },
+      headers,
       body: JSON.stringify(emailData),
     });
 
@@ -116,7 +122,7 @@ export default Sentry.withSentry(
         try {
           const emailData = await parseEmail(message);
           
-          const webhookResponse = await forwardToWebhook(emailData, env.WEBHOOK_URL);
+          const webhookResponse = await forwardToWebhook(emailData, env.WEBHOOK_URL, env.BRICK_WEBHOOK_TOKEN);
           
           if (!webhookResponse.ok) {
             scope.setTag('webhook.status', `${webhookResponse.status}`);
