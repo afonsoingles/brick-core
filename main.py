@@ -1,5 +1,9 @@
 import os
 from fastapi import FastAPI
+from dotenv import load_dotenv
+
+if not os.environ.get("DOPPLER_TOKEN"):
+    load_dotenv()
 
 app = FastAPI()
 

@@ -1,0 +1,32 @@
+name = "brick-email-worker"
+type = "service"
+main = "src/index.ts"
+compatibility_date = "2024-12-19"
+
+# Email Routing
+[env.production]
+routes = [
+  { pattern = "*.example.com/**", zone_name = "example.com" }
+]
+
+[[env.production.email_routing.matchers]]
+pattern = "*@example.com"
+
+[env.development]
+routes = [
+  { pattern = "*.dev.example.com/**", zone_name = "dev.example.com" }
+]
+
+[[env.development.email_routing.matchers]]
+pattern = "*@dev.example.com"
+
+# Environment Variables
+[env.production]
+vars = { WEBHOOK_URL = "https://your-api.example.com/webhook/email" }
+
+[env.development]
+vars = { WEBHOOK_URL = "http://localhost:3000/webhook/email" }
+
+# Observability
+[observability]
+enabled = true
