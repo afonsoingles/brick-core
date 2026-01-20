@@ -1,4 +1,4 @@
-import { Sentry } from "./sentry";
+import { Sentry } from "./sentry.js";
 
 export async function sendWebhook(body, headers, env) {
   const start = performance.now();
@@ -15,22 +15,17 @@ export async function sendWebhook(body, headers, env) {
 
     const duration = performance.now() - start;
 
-    Sentry.metrics.distribution(
-      "webhook.latency_ms",
-      duration
-    );
+    Sentry?.metrics?.distribution("webhook.latency_ms", duration);
 
     if (!res.ok) {
-      Sentry.metrics.count("webhook.failed", 1);
-      throw new Error(
-        `Webhook failed (${res.status})`
-      );
+      Sentry?.metrics?.count("webhook.failed", 1);
+      throw new Error(`Webhook failed (${res.status})`);
     }
 
-    Sentry.metrics.count("webhook.sent", 1);
+    Sentry?.metrics?.count("webhook.sent", 1);
   } catch (err) {
-    Sentry.metrics.count("webhook.failed", 1);
-    Sentry.captureException(err);
+    Sentry?.metrics?.count("webhook.failed", 1);
+    Sentry?.captureException(err);
     throw err;
   }
 }

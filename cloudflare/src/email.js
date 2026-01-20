@@ -1,11 +1,10 @@
-import { signPayload } from "./signer";
-import { sendWebhook } from "./webhook";
-import { Sentry } from "./sentry";
+import { signPayload } from "./signer.js";
+import { sendWebhook } from "./webhook.js";
+import { Sentry } from "./sentry.js";
 
 export async function handleEmail(message, env) {
-  Sentry.metrics.count("email.received", 1);
+  Sentry?.metrics?.count("email.received", 1);
 
-  const rawEmail = await message.raw();
   const rawSize = rawEmail.byteLength;
 
   Sentry.metrics.distribution(
@@ -18,9 +17,6 @@ export async function handleEmail(message, env) {
     to: message.to,
     subject: message.headers.get("subject") ?? "",
     text: await message.text(),
-    raw: btoa(
-      String.fromCharCode(...new Uint8Array(rawEmail))
-    ),
     received_at: new Date().toISOString(),
   };
 
