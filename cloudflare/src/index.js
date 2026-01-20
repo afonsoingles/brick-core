@@ -1,146 +1,29 @@
-import * as Sentry from '@sentry/cloudflare';
+import { handleEmail } from "./email";
+import { initSentry } from "./sentry";
 
-async function parseEmail(message) {
-  const headers = {};
-  let text;
-  let html;
-  const attachments = [];
+export default {
+  async fetch(request, env, ctx) {
+    const Sentry = await initSentry(env, ctx);
 
-  try {
-    const emailText = await message.raw.text();
-    
-    // Parse headers from raw email
-    const headerEndIndex = emailText.indexOf('\r\n\r\n');
-    const headerSection = emailText.substring(0, headerEndIndex);
-    const bodySection = emailText.substring(headerEndIndex + 4);
+    const url = new URL(request.url);
 
-    // Parse headers
-    headerSection.split('\r\n').forEach((line) => {
-      const colonIndex = line.indexOf(':');
-      if (colonIndex > -1) {
-        const key = line.substring(0, colonIndex).toLowerCase().trim();
-        const value = line.substring(colonIndex + 1).trim();
-        headers[key] = value;
-      }
-    });
-
-    // Simple MIME parsing for text/html extraction
-    const textMatch = emailText.match(/\r?\n\r?\nContent-Type: text\/plain[\s\S]*?\r?\n\r?\n([\s\S]*?)(?=\r?\n--)/);
-    if (textMatch) {
-      text = textMatch[1].trim();
+    try {
+      if (url.pathname === "/up") return new Response("OK", { status: 200 });
+      return new Response("Not Found", { status: 404 });
+    } catch (err) {
+      Sentry?.captureException(err);
+      throw err;
     }
+  },
 
-    const htmlMatch = emailText.match(/Content-Type: text\/html[\s\S]*?\r?\n\r?\n([\s\S]*?)(?=\r?\n--)/);
-    if (htmlMatch) {
-      html = htmlMatch[1].trim();
+  async email(message, env, ctx) {
+    const Sentry = await initSentry(env, ctx);
+
+    try {
+      await handleEmail(message, env);
+    } catch (err) {
+      Sentry?.captureException(err);
+      throw err;
     }
-
-    // If no structured content found, use body section
-    if (!text && !html) {
-      text = bodySection;
-    }
-  } catch (error) {
-    console.error('Error parsing email body:', error);
-  }
-
-  // Extract key fields from headers
-  const from = message.from;
-  const to = message.to?.split(',').map(e => e.trim()) || [];
-  const cc = headers['cc']?.split(',').map(e => e.trim()) || [];
-  const bcc = headers['bcc']?.split(',').map(e => e.trim()) || [];
-  const subject = headers['subject'] || '';
-  const messageId = headers['message-id'];
-  const inReplyTo = headers['in-reply-to'];
-  const references = headers['references']?.split(' ') || [];
-  const date = headers['date'];
-
-  return {
-    from,
-    to,
-    cc: cc.length > 0 ? cc : undefined,
-    bcc: bcc.length > 0 ? bcc : undefined,
-    subject,
-    text,
-    html,
-    headers,
-    attachments,
-    messageId,
-    inReplyTo,
-    references: references.length > 0 ? references : undefined,
-    date,
-  };
-}
-
-async function forwardToWebhook(emailData, webhookUrl, webhookToken) {
-  try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'User-Agent': 'Brick-Email-Worker/1.0',
-    };
-
-    if (webhookToken) {
-      headers['Authorization'] = `Bearer ${webhookToken}`;
-    }
-
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(emailData),
-    });
-
-    if (!response.ok) {
-      console.error(`Webhook returned status ${response.status}`);
-      const text = await response.text();
-      console.error(`Webhook response: ${text}`);
-    }
-
-    return response;
-  } catch (error) {
-    console.error('Error forwarding to webhook:', error);
-    throw error;
-  }
-}
-
-export default Sentry.withSentry(
-  (env) => ({
-    dsn: env.SENTRY_DSN,
-    environment: env.ENVIRONMENT || 'development',
-    enableLogs: true,
-    sendDefaultPii: false,
-  }),
-  {
-    async email(message, env, ctx) {
-      return Sentry.withScope(async (scope) => {
-        scope.setTag('email.processed', true);
-        scope.setContext('email', {
-          from: message.from,
-          to: message.to,
-        });
-
-        Sentry.captureMessage(`Processing email from ${message.from} to ${message.to}`, 'info');
-
-        try {
-          const emailData = await parseEmail(message);
-          
-          const webhookResponse = await forwardToWebhook(emailData, env.WEBHOOK_URL, env.BRICK_WEBHOOK_TOKEN);
-          
-          if (!webhookResponse.ok) {
-            scope.setTag('webhook.status', `${webhookResponse.status}`);
-            scope.setTag('webhook.success', false);
-            Sentry.captureMessage(
-              `Failed to forward email: webhook returned ${webhookResponse.status}`,
-              'warning'
-            );
-          } else {
-            scope.setTag('webhook.success', true);
-            Sentry.captureMessage('Email successfully forwarded to webhook', 'info');
-          }
-        } catch (error) {
-          scope.setTag('email.error', true);
-          Sentry.captureException(error);
-          throw error;
-        }
-      });
-    },
-  }
-);
+  },
+};
