@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Request
-from decorators.signatures import verify_signature
+from decorators.signatures import valid_signature
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 @router.post("/email/cloudflare", status_code=200)
-@verify_signature
+@valid_signature
 async def email_webhook(request: Request):
     
     print(request.json())
