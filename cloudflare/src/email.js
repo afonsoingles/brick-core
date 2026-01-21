@@ -5,18 +5,12 @@ import { Sentry } from "./sentry.js";
 export async function handleEmail(message, env) {
   Sentry?.metrics?.count("email.received", 1);
 
-  const rawSize = rawEmail.byteLength;
-
-  Sentry.metrics.distribution(
-    "email.size_bytes",
-    rawSize
-  );
 
   const payload = {
     from: message.from,
     to: message.to,
     subject: message.headers.get("subject") ?? "",
-    text: await message.text(),
+    mail: message,
     received_at: new Date().toISOString(),
   };
 
