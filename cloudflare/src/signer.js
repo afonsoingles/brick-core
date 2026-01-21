@@ -20,13 +20,21 @@ export async function signPayload(body, timestamp, privateKeyB64) {
     `${timestamp}.${body}`
   );
 
+  console.log(`SIGN DEBUG: data string=${timestamp}.${body}`);
+  console.log(`SIGN DEBUG: timestamp type=${typeof timestamp}, timestamp=${timestamp}`);
+
   const signature = await crypto.subtle.sign(
     { name: "ECDSA", hash: "SHA-256" },
     privateKey,
     data
   );
 
-  return btoa(
-    String.fromCharCode(...new Uint8Array(signature))
-  );
+  const sigBytes = new Uint8Array(signature);
+  console.log(`SIGN DEBUG: signature bytes length=${sigBytes.length}`);
+  console.log(`SIGN DEBUG: signature bytes=${Array.from(sigBytes).map(b => b.toString(16).padStart(2, '0')).join('')}`);
+
+  const encoded = btoa(String.fromCharCode(...sigBytes));
+  console.log(`SIGN DEBUG: base64 encoded=${encoded}`);
+  
+  return encoded;
 }
