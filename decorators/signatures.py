@@ -16,9 +16,10 @@ def valid_signature(func):
             raise ValueError("Request object not found in function arguments.")
 
         body = await request.body()
-        signature = request.headers.get("X-Brick-Signature", "")
+        signature = request.headers.get("X-Signature", "")
+        timestamp = request.headers.get("X-Timestamp", "")
 
-        if not verify_signature(body, signature):
+        if not verify_signature(body, signature, timestamp):
             raise HTTPException(status_code=401, detail="Invalid signature")
 
         return await func(*args, **kwargs)
