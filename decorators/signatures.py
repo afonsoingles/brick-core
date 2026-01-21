@@ -19,8 +19,6 @@ def valid_signature(func):
         signature = request.headers.get("X-Signature", "")
         timestamp = request.headers.get("X-Timestamp", "")
 
-        # Debug: log what we're verifying
-        print(f"DEBUG: body={body}, timestamp={timestamp}, signature={signature}")
 
         if not verify_signature(body, signature, timestamp):
             raise HTTPException(status_code=401, detail="Invalid signature")
