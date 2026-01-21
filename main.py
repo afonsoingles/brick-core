@@ -17,4 +17,4 @@ async def root():
 async def health():
     return {"status": "ok", "version": os.environ.get("APP_VERSION", "unknown"), "commit": os.environ.get("GIT_SHA", "unknown")}
 
-app.include_router(webhooks_router, prefix="/webhooks", tags=["webhooks"])
+app.include_router(webhooks_router, tags=["webhooks"])
