@@ -1,8 +1,8 @@
+import os
 from functools import wraps
 from fastapi import Request, HTTPException
-from utils.signatures import verify_signature
 
-def valid_signature(func):
+def valid_secure_key(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
         request: Request = kwargs.get("request")
@@ -15,13 +15,11 @@ def valid_signature(func):
         if request is None:
             raise ValueError("Request object not found in function arguments.")
 
-        body = await request.body()
-        signature = request.headers.get("X-Signature", "")
-        timestamp = request.headers.get("X-Timestamp", "")
+        secure_key = request.headers.get("X-Secure-Key", "")
+        expected_key = os.environ.get("SECURE_KEY", "")
 
-
-        if not verify_signature(body, signature, timestamp):
-            raise HTTPException(status_code=401, detail="Invalid signature")
+        if secure_key != expected_key:
+            raise HTTPException(status_code=401, detail="Invalid secure key")
 
         return await func(*args, **kwargs)
     return wrapper
