@@ -1,8 +1,0 @@
-node_modules/
-dist/
-.wrangler/
-.env
-.env.local
-.DS_Store
-*.log
-package-lock.json
