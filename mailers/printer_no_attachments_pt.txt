@@ -1,0 +1,9 @@
+Olá,
+
+Parece que enviou um email para a impressora sem anexos.
+Sem anexos, não há nada para imprimir...
+
+Se pretende imprimir um documento, por favor, anexe o ficheiro ao email e envie-o novamente.
+
+
+Obrigado.
