@@ -40,6 +40,7 @@ dependencies = [
     { name = "cryptography" },
     { name = "fastapi" },
     { name = "gunicorn" },
+    { name = "pycups" },
     { name = "pymongo" },
     { name = "python-dotenv" },
     { name = "redis" },
@@ -52,6 +53,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=46.0.3" },
     { name = "fastapi", specifier = ">=0.128.0" },
     { name = "gunicorn", specifier = ">=23.0.0" },
+    { name = "pycups", specifier = ">=2.0.4" },
     { name = "pymongo", specifier = ">=4.16.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "redis", specifier = ">=7.1.0" },
@@ -261,6 +263,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/fe/cf/d2d3b9f5699fb1e46
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/e3/59cd50310fc9b59512193629e1984c1f95e5c8ae6e5d8c69532ccc65a7fe/pycparser-2.23-py3-none-any.whl", hash = "sha256:e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934", size = 118140, upload-time = "2025-09-09T13:23:46.651Z" },
 ]
+
+[[package]]
+name = "pycups"
+version = "2.0.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/96/c4/b077f0422cd031e4f3a47c75ce0bcf77f2f2e5bf3648f6945a4d09fd44a5/pycups-2.0.4.tar.gz", hash = "sha256:843e385c1dbf694996ca84ef02a7f30c28376035588f5fbeacd6bae005cf7c8d", size = 65105, upload-time = "2024-04-18T06:20:40.589Z" }
 
 [[package]]
 name = "pydantic"
