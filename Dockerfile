@@ -9,8 +9,10 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Minimal system deps
+# System deps
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
     curl \
     ca-certificates \
     gnupg \
