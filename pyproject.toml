@@ -5,9 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "bcrypt>=5.0.0",
     "cryptography>=46.0.3",
     "fastapi>=0.128.0",
     "gunicorn>=23.0.0",
+    "jwt>=1.4.0",
     "pycups>=2.0.4",
     "pymongo>=4.16.0",
     "python-dotenv>=1.2.1",
