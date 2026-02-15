@@ -2,6 +2,7 @@ from utils.database import Database
 import uuid
 import bcrypt
 import json
+import datetime
 
 class UserTools:
     def __init__(self):
@@ -10,11 +11,14 @@ class UserTools:
     
     def _hash_password(self, password):
         salt = bcrypt.gensalt(rounds=12)
-        result = bcrypt.hashpw(password, salt).decode("utf-8")
+        result = bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
         return result
     
-    def create_user(self, name, email, password, region, language):
+    def verify_password_hash(self, password, hashed):
+        return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    
+    def create_user(self, name, email, password, region, language, auth_methods=[]):
         
         exists_redis = self.db.redis.get(f"users.lookup.email:{email}")
         if exists_redis:
@@ -26,14 +30,23 @@ class UserTools:
         
         hashed_password = self._hash_password(password)
         id = str(uuid.uuid4())
+        now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
 
         user = {
+            "_id": id, # MongoDB is annoying with ts.
             "id": id,
             "name": name,
             "email": email,
             "password": hashed_password,
+            "auth_methods": auth_methods,
             "region": region,
-            "language": language
+            "language": language,
+            "superadmin": False,
+            "admin": False,
+            "permissions": [],
+            "suspended": False,
+            "created_at": now_ts,
+            "updated_at": now_ts
         }
 
         self.db.mongo.users.insert_one(user)

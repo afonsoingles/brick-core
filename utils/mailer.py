@@ -9,6 +9,13 @@ class Mailer:
         return content.format(**vars)
 
     def send_email(self, sender_name="", sender=None, subject="", template=None, to=None, reply_id=None, references=None, **vars):
+
+        if not sender:
+            sender = os.environ.get("DEFAULT_SENDER_EMAIL")
+
+        if not sender_name:
+            sender_name = os.environ.get("DEFAULT_SENDER_NAME")
+
         text = self._load_template(template, **vars)
         if reply_id and references:
             extra = {

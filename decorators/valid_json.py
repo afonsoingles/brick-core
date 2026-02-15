@@ -31,8 +31,7 @@ def valid_json(required_fields=None):
             if missing:
                 raise HTTPException(status_code=422, detail=f"Missing required fields: {missing}")
 
-
-            kwargs.setdefault("json_body", data)
+            request.state.json = data
             return await func(*args, **kwargs)
         return wrapper
     return decorator
