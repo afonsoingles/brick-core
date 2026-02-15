@@ -10,21 +10,11 @@ Hi! This is a compilation for workers/automations to help me with things. Curren
 `uv sync`
 3. Set the envs!
 You can use doppler by setting up a `DOPPLER_TOKEN` or use env variables directly.
-Here are the necessary ones:
-```
-ENV=development
-MAILGUN_API_KEY=key
-MAILGUN_DOMAIN=example.com
-PRINTER_CUPS_HOST=192.168.X.X
-PRINTER_CUPS_PORT=631
-PRINTER_CUPS_NAME=Your_Printer_Name
-PRINTER_EMAIL=printer@example.com
-SECURE_KEY=secure_key123
-```
+You can check the necessary env variables in the `.env.example` file.
 4. Run it!
 `uvicorn main:app --reload --host 0.0.0.0`
 
 That's it!
 
 ### Printer
-This is (currently) the only worker. It forwards emails sent to my printer's email to my actual printer, so its files are actually printed.
+This is (currently) the only worker. It forwards emails sent to my printer's email to my actual printer, so its files are actually printed. With the new authentication system, i will be adding the ability to see wich files you sent to the printer, via the Brick Dashboard.
