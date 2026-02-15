@@ -9,9 +9,16 @@ if not os.environ.get("DOPPLER_TOKEN"):
 
 app = FastAPI()
 
+env = os.environ.get("APP_ENVIRONMENT")
+
+if env == "development":
+    allow_origin_regex = r"^https?://(?:(?:[a-zA-Z0-9-]+\.)*afonsoingles\.dev|localhost|127\.0\.0\.1)(:[0-9]+)?$"
+else:
+    allow_origin_regex = r"^https?://(?:(?:[a-zA-Z0-9-]+\.)*afonsoingles\.dev)(:[0-9]+)?$"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://([a-zA-Z0-9-]+\.)*afonsoingles\.dev(:[0-9]+)?$",
+    allow_origin_regex=allow_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
