@@ -1,0 +1,11 @@
+Hi,
+
+It looks like you requested a login code for your account. Your code is:
+
+{otp}
+
+This code is valid for 5 minutes.
+
+If you did not request this code, please ignore this email.
+
+Thank you.

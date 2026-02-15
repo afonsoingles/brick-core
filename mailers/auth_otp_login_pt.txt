@@ -1,0 +1,11 @@
+Olá,
+
+Parece que solicitou um código de autenticação para aceder à sua conta. O seu código de autenticação é:
+
+{otp}
+
+Este código é válido por 5 minutos.
+
+Se não solicitou este código, por favor ignore este email. 
+
+Obrigado.
