@@ -37,6 +37,7 @@ def proccess_printer_email(request):
         file_name = attachment.get("filename")
 
         if not content_b64:
+            print(f"Attachment without content. from email: {sender} // file name: {file_name}")
             # skip attachments without content. this should never happen?
             continue
 
@@ -57,7 +58,7 @@ def proccess_printer_email(request):
         try:
             data = base64.b64decode(content_b64)
         except Exception as e:
-            # email reply
+            print(f"Error decoding attachment: {e} // from email: {sender} // file name: {file_name}")
             continue
         
         user = user_tools.get_user_by_email(sender)
