@@ -21,7 +21,7 @@ async def get_auth_methods(request: Request):
     user = user_tools.get_user_by_email(request.state.json["email"])
     
     if user == "not_found":
-        return {"success": False, "message": "User not found"}, 404
+        return {"success": False, "message": "User not found"}
     
     return {
         "success": True,

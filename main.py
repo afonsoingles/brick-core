@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routers.webhooks import router as webhooks_router
 from routers.authentication import router as authentication_router
+from routers.printer import router as printer_router
 
 if not os.environ.get("DOPPLER_TOKEN"):
     load_dotenv()
@@ -35,3 +36,4 @@ async def health():
 
 app.include_router(webhooks_router, tags=["webhooks"])
 app.include_router(authentication_router, tags=["authentication"])
+app.include_router(printer_router, tags=["printer"])

@@ -43,6 +43,10 @@ class UserTools:
             "language": language,
             "superadmin": False,
             "admin": False,
+            "printer": {
+                "credits": 0,
+                "no_credits_action": "require_approval"
+            },
             "permissions": [],
             "suspended": False,
             "created_at": now_ts,
@@ -105,3 +109,21 @@ class UserTools:
         del real_user["_id"]
 
         return real_user
+    
+    def update_user(self, id, data):
+        user = self.get_user_by_id(id, False)
+
+        if user == "not_found":
+            return "not_found"
+        
+        for key in data:
+            if key not in ["suspended", "permissions", "admin", "superadmin", "password", "email", "created_at", "updated_at", "id"]:
+                user[key] = data[key]
+            else:
+                return "protected_field"
+        
+        user["updated_at"] = datetime.datetime.now(datetime.timezone.utc).timestamp()
+
+        self.db.mongo.users.update_one({"id": id}, {"$set": user})
+        self.db.redis.set(f"users.user:{id}", json.dumps(user), ex=10800)
+        self.db.redis.set(f"users.lookup.email:{user['email']}", id, ex=10800)

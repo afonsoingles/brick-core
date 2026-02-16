@@ -45,8 +45,8 @@ def proccess_printer_email(request):
                 sender_name="Brick Printer",
                 sender=os.environ.get("PRINTER_EMAIL"),
                 to=request.get("from"),
-                subject="Não suportado",
-                template="printer_only_pdf_pt",
+                subject="Not supported",
+                template="printer_only_pdf_en",
                 reply_id=request.get("headers").get("message-id"),
                 references=request.get("headers").get("message-id")
             )
@@ -61,6 +61,7 @@ def proccess_printer_email(request):
             continue
         
         user = user_tools.get_user_by_email(sender)
+
         if user == "not_found":
             user = user_tools.create_user(
                 name=sender.split("@")[0],
@@ -70,10 +71,22 @@ def proccess_printer_email(request):
                 language="EN",
                 auth_methods=["otp"]
             )
+            user = user_tools.get_user_by_email(sender)
 
-        printer.register_print_job(
+        register = printer.register_print_job(
             user["id"],
             file_name=file_name,
-            file_b64=content_b64,
+            content=data,
         )
-        
+
+        if register == "pending":
+            mailer.send_email(
+                sender_name="Brick Printer",
+                sender=os.environ.get("PRINTER_EMAIL"),
+                to=request.get("from"),
+                subject="Your print job is on hold",
+                template="not_enough_credits_en",
+                reply_id=request.get("headers").get("message-id"),
+                references=request.get("headers").get("message-id")
+            )
+
