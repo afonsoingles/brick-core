@@ -1,7 +1,0 @@
-Olá,
-
-Parece que tentou enviar um email para a impressora com um ficheiro que não é suportado.
-Atualmente, apenas é possível imprimir via email ficheiros PDF.
-Para imprimir outro tipo de documento, por favor utilize os métodos convencionais.
-
-Obrigado.

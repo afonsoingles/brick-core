@@ -1,0 +1,8 @@
+Hi,
+
+It looks like you tried to print a document, but you don't have enough credits to do so.
+This may be because you are using a new account, or your credits ran out.
+
+Your print job has been put on hold, so an admin can review it and decide whether to approve it or not.
+
+Thank you.

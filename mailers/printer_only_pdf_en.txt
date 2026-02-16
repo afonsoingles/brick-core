@@ -1,0 +1,5 @@
+Hi,
+
+For now, we only support PDF files. Please make sure to send a PDF file as an attachment.
+
+Thank you.
