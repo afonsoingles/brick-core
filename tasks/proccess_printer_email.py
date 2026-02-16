@@ -14,7 +14,7 @@ def proccess_printer_email(request):
     mailer = Mailer()
 
     
-    sender = request.get("from")
+    sender = request.get("headers").get("sender")
     attachments = request.get("attachments")
 
     if not attachments:
