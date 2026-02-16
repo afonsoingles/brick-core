@@ -79,7 +79,8 @@ class UserTools:
         if safe:
             del real_user["password"]
         
-        del real_user["_id"]
+        if "_id" in real_user:
+            del real_user["_id"]
 
         return real_user
 
