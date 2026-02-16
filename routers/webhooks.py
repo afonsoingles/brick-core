@@ -3,7 +3,6 @@ from decorators.signatures import valid_secure_key
 from utils.printer import Printer
 from tasks.proccess_printer_email import proccess_printer_email
 import os
-import base64
 
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
