@@ -14,7 +14,7 @@ def proccess_printer_email(request):
     mailer = Mailer()
 
     
-    sender = request.get("headers").get("sender")
+    sender = request.get("headers").get("from")
     attachments = request.get("attachments")
 
     if not attachments:
@@ -65,7 +65,7 @@ def proccess_printer_email(request):
 
         if user == "not_found":
             user = user_tools.create_user(
-                name=sender.split("@")[0],
+                name=sender,
                 email=sender,
                 password="",
                 region="",
