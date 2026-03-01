@@ -1,5 +1,8 @@
 Hi,
 
-For now, we only support PDF files. Please make sure to send a PDF file as an attachment.
+It seems like one or more of the files you sent were not valid for printing.
+For now, only PDF files are accepted.
+
+Your valid files will be printed as requested, but please check the invalid files and resend them in PDF format if you want them to be printed as well.
 
 Thank you.

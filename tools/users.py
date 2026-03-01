@@ -127,3 +127,4 @@ class UserTools:
         self.db.mongo.users.update_one({"id": id}, {"$set": user})
         self.db.redis.set(f"users.user:{id}", json.dumps(user), ex=10800)
         self.db.redis.set(f"users.lookup.email:{user['email']}", id, ex=10800)
+        return "user_updated"
