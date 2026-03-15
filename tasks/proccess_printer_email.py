@@ -63,7 +63,6 @@ Here is an example of the JSON you should output:
 
 Here is the email JSON (input):
 {json.dumps(safe_email)}""")
-    print(ai_response)
     ai_response = json.loads(ai_response)
 
     user = user_tools.get_user_by_email(ai_response["email"])
