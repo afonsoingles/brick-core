@@ -1,6 +1,7 @@
-Hi,
+Hi {name},
 
-It looks like you tried to print a document, but you don't have enough credits to do so.
+It looks like you tried to print one or more documents, but you don't have enough credits to do so.
+Your current credit balance is {credits} credits, but the total cost of your print job is {total_cost} credits.
 This may be because you are using a new account, or your credits ran out.
 
 Your print job has been put on hold, so an admin can review it and decide whether to approve it or not.
