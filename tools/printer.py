@@ -37,7 +37,7 @@ class Printer:
         }
         return log_entry
 
-    def register_job(self, user_id, file, color=True, copies=1, status="pending"):
+    def register_job(self, user_id, filename, file, color=True, copies=1, status="pending"):
         job_id = str(uuid.uuid4())
         now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
         creation_log = self._create_log(job_id=job_id, user_id=user_id, message="Created this print job.")
@@ -47,6 +47,7 @@ class Printer:
             "job_id": job_id,
             "user_id": user_id,
             "cups_job_id": None,
+            "filename": filename,
             "file": file,
             "color": color,
             "copies": copies,
@@ -58,4 +59,24 @@ class Printer:
 
     def register_bulk_jobs(self, jobs):
         for job in jobs:
-            self.register_job(job["user_id"], job["file"], color=job["color"], copies=job["copies"], status=job["status"])
+            self.register_job(job["user_id"], job["filename"], job["file"], color=job["color"], copies=job["copies"], status=job["status"])
+    
+    def get_user_jobs(self, user, page=1, per_page=10):
+        skip = (page - 1) * per_page
+        jobs = list(self.db.mongo.print_jobs_v2.find({"user_id": user}).sort("created_at", -1).skip(skip).limit(per_page))
+        for job in jobs:
+            del job["_id"]
+        return jobs
+    
+    def admin_get_pending_jobs(self, page=1, per_page=10):
+        skip = (page - 1) * per_page
+        jobs = list(self.db.mongo.print_jobs_v2.find({"status": "pending"}).sort("created_at", -1).skip(skip).limit(per_page))
+        for job in jobs:
+            del job["_id"]
+        return jobs
+    
+    def get_job(self, id):
+        job = self.db.mongo.print_jobs_v2.find_one({"job_id": id})
+        if job:
+            del job["_id"]
+        return job

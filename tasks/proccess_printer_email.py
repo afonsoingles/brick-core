@@ -122,6 +122,7 @@ Here is the email JSON (input):
         storage.upload_file(os.environ.get("S3_USER_CONTENT_BUCKET"), file_str, base64.b64decode(file["content"]))
         job = {
             "user_id": user["id"],
+            "filename": file["name"],
             "file": file_str,
             "color": file["color"],
             "copies": file["copies"],
