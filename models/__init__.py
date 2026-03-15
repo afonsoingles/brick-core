@@ -1,4 +1,4 @@
-from models.user import User, UserPrinterSettings, UserPermissions
-from models.print_job import PrintJob, PrintJobLog
+from models.user import User, SafeUser, UserPrinterSettings, UserPermissions
+from models.print_job import PrintJob, SafePrintJob, PrintJobLog
 
-__all__ = ["User", "UserPrinterSettings", "UserPermissions", "PrintJob", "PrintJobLog"]
+__all__ = ["User", "SafeUser", "UserPrinterSettings", "UserPermissions", "PrintJob", "SafePrintJob", "PrintJobLog"]

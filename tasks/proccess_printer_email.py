@@ -75,8 +75,10 @@ Here is the email JSON (input):
             language="EN"
         )
         user = user_tools.get_user_by_email(ai_response["email"])
+        if user == "not_found":
+            return
 
-    if user["suspended"]:
+    if user.suspended:
         return
     
     valid_files = ai_response["files"]
@@ -97,20 +99,20 @@ Here is the email JSON (input):
         total_cost += printer.calculate_cost(file["content"], color=file["color"], copies=file["copies"])
     
     
-    if user["printer"]["credits"] < total_cost and user["printer"]["no_credits_action"] == "require_approval":
+    if user.printer.credits < total_cost and user.printer.no_credits_action == "require_approval":
         mailer.send_email(
             sender_name="Brick Printer",
             sender_email=os.environ.get("PRINTER_EMAIL"),
-            to=user["email"],
+            to=user.email,
             subject="Your print job is on hold",
             template="not_enough_credits_en",
-            name=user["name"],
-            credits=user["printer"]["credits"],
+            name=user.name,
+            credits=user.printer.credits,
             total_cost=total_cost
         )
         set_pending = True
         return
-    elif user["printer"]["credits"] < total_cost and user["printer"]["no_credits_action"] != "require_approval":
+    elif user.printer.credits < total_cost and user.printer.no_credits_action != "require_approval":
         # This should never be happening. Adding this for a future implementation.
         return
     
@@ -121,7 +123,7 @@ Here is the email JSON (input):
         file_str = f"printer_jobs/{str(uuid.uuid4())}.pdf"
         storage.upload_file(os.environ.get("S3_USER_CONTENT_BUCKET"), file_str, base64.b64decode(file["content"]))
         job = {
-            "user_id": user["id"],
+            "user_id": user.id,
             "filename": file["name"],
             "file": file_str,
             "color": file["color"],

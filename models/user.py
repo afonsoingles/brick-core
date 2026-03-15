@@ -12,11 +12,12 @@ class UserPermissions(BaseModel):
     manage_users: bool = False
 
 
-class User(BaseModel):
+class SafeUser(BaseModel):
+    """User with personal/sensitive information redacted (no password)."""
+
     id: str
     name: str
     email: str
-    password: Optional[str] = None
     auth_methods: list[str] = Field(default_factory=list)
     region: str
     language: str
@@ -37,3 +38,9 @@ class User(BaseModel):
             data = dict(data)
             data["permissions"] = UserPermissions()
         return data
+
+
+class User(SafeUser):
+    """Full user model including the hashed password."""
+
+    password: Optional[str] = None

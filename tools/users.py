@@ -1,5 +1,5 @@
 from utils.database import Database
-from models.user import User
+from models.user import User, SafeUser
 import uuid
 import bcrypt
 import datetime
@@ -53,26 +53,31 @@ class UserTools:
         self.db.redis.set(f"users.lookup.email:{email}", id, ex=10800)
 
         return "user_created"
-    
-    def get_user_by_id(self, id, safe=True):
-        
+
+    def _get_user_model(self, id) -> User | None:
+        """Internal helper: returns the full User model (with password) or None."""
         redis_user = self.db.redis.get(f"users.user:{id}")
         if redis_user:
-            user = User.model_validate_json(redis_user)
-        else:
-            raw = self.db.mongo.users.find_one({"id": id})
-            if not raw:
-                return "not_found"
-            user = User.model_validate(raw)
-            # Cache for future requests (3h)
-            self.db.redis.set(f"users.user:{id}", user.model_dump_json(), ex=10800)
-            self.db.redis.set(f"users.lookup.email:{user.email}", id, ex=10800)
+            return User.model_validate_json(redis_user)
 
+        raw = self.db.mongo.users.find_one({"id": id})
+        if not raw:
+            return None
+        user = User.model_validate(raw)
+        # Cache for future requests (3h)
+        self.db.redis.set(f"users.user:{id}", user.model_dump_json(), ex=10800)
+        self.db.redis.set(f"users.lookup.email:{user.email}", id, ex=10800)
+        return user
+    
+    def get_user_by_id(self, id, safe=True) -> User | SafeUser | str:
+        user = self._get_user_model(id)
+        if user is None:
+            return "not_found"
         if safe:
-            return user.model_dump(exclude={"password"})
-        return user.model_dump()
+            return SafeUser.model_validate(user.model_dump(exclude={"password"}))
+        return user
 
-    def get_user_by_email(self, email, safe=True):
+    def get_user_by_email(self, email, safe=True) -> User | SafeUser | str:
         #TODO: There should be a better way to do this (Don't repeat yourself)
         
         redis_id = self.db.redis.get(f"users.lookup.email:{email}")
@@ -89,15 +94,16 @@ class UserTools:
         self.db.redis.set(f"users.lookup.email:{email}", user.id, ex=10800)
 
         if safe:
-            return user.model_dump(exclude={"password"})
-        return user.model_dump()
+            return SafeUser.model_validate(user.model_dump(exclude={"password"}))
+        return user
     
     def update_user(self, id, data):
-        user_dict = self.get_user_by_id(id, safe=False)
+        user = self._get_user_model(id)
 
-        if user_dict == "not_found":
+        if user is None:
             return "not_found"
         
+        user_dict = user.model_dump()
         for key in data:
             if key not in ["suspended", "permissions", "admin", "superadmin", "password", "email", "created_at", "updated_at", "id"]:
                 user_dict[key] = data[key]
