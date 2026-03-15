@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, model_validator
 from typing import Optional
+from datetime import datetime
 
 
 class UserPrinterSettings(BaseModel):
@@ -26,8 +27,8 @@ class SafeUser(BaseModel):
     printer: UserPrinterSettings = Field(default_factory=UserPrinterSettings)
     permissions: UserPermissions = Field(default_factory=UserPermissions)
     suspended: bool = False
-    created_at: float
-    updated_at: float
+    created_at: datetime
+    updated_at: datetime
 
     @model_validator(mode="before")
     @classmethod

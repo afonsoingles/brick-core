@@ -29,7 +29,7 @@ class Printer:
         return cost
     
     def _create_log(self, actor, log_type, description=None):
-        now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+        now_ts = datetime.datetime.now(datetime.timezone.utc)
         return PrintJobLog(
             id=str(uuid.uuid4()),
             timestamp=now_ts,
@@ -40,7 +40,7 @@ class Printer:
 
     def register_job(self, user_id, filename, file, color=True, copies=1, status="pending"):
         job_id = str(uuid.uuid4())
-        now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+        now_ts = datetime.datetime.now(datetime.timezone.utc)
         creation_log = self._create_log(actor=user_id, log_type="job_created", description="Created this print job.")
 
         job = PrintJob(

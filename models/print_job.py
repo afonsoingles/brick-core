@@ -1,11 +1,12 @@
 from pydantic import BaseModel, Field, model_validator
 from typing import Optional
+from datetime import datetime
 import hashlib
 
 
 class PrintJobLog(BaseModel):
     id: str
-    timestamp: float
+    timestamp: datetime
     actor: str  # "system" or a user id
     type: str   # e.g. "job_created", "job_accepted", "job_rejected"
     description: Optional[str] = None
@@ -34,8 +35,8 @@ class PrintJob(BaseModel):
     copies: int = 1
     status: str
     logs: list[PrintJobLog] = Field(default_factory=list)
-    created_at: float
-    updated_at: float
+    created_at: datetime
+    updated_at: datetime
 
     @model_validator(mode="before")
     @classmethod
@@ -60,5 +61,5 @@ class SafePrintJob(BaseModel):
     copies: int = 1
     status: str
     logs: list[PrintJobLog] = Field(default_factory=list)
-    created_at: float
-    updated_at: float
+    created_at: datetime
+    updated_at: datetime

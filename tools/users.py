@@ -30,7 +30,7 @@ class UserTools:
         
         hashed_password = self._hash_password(password)
         id = str(uuid.uuid4())
-        now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+        now_ts = datetime.datetime.now(datetime.timezone.utc)
 
         user = User(
             id=id,
@@ -110,7 +110,7 @@ class UserTools:
             else:
                 return "protected_field"
         
-        user_dict["updated_at"] = datetime.datetime.now(datetime.timezone.utc).timestamp()
+        user_dict["updated_at"] = datetime.datetime.now(datetime.timezone.utc)
 
         user = User.model_validate(user_dict)
         updated_dict = user.model_dump()
