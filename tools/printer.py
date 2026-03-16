@@ -1,5 +1,6 @@
 from utils.database import Database
 from tools.users import UserTools
+from models.print_job import PrintJob, PrintJobLog
 import datetime
 import uuid
 from utils.printer import Printer as PrinterConnector
@@ -27,35 +28,38 @@ class Printer:
 
         return cost
     
-    def _create_log(self, job_id, user_id, message):
-        now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
-        log_entry = {
-            "timestamp": now_ts,
-            "job_id": job_id,
-            "user_id": user_id,
-            "description": message
-        }
-        return log_entry
+    def _create_log(self, actor, log_type, description=None):
+        now_ts = datetime.datetime.now(datetime.timezone.utc)
+        return PrintJobLog(
+            id=str(uuid.uuid4()),
+            timestamp=now_ts,
+            actor=actor,
+            type=log_type,
+            description=description,
+        )
 
     def register_job(self, user_id, filename, file, color=True, copies=1, status="pending"):
         job_id = str(uuid.uuid4())
-        now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
-        creation_log = self._create_log(job_id=job_id, user_id=user_id, message="Created this print job.")
+        now_ts = datetime.datetime.now(datetime.timezone.utc)
+        creation_log = self._create_log(actor=user_id, log_type="job_created", description="Created this print job.")
 
-        self.db.mongo.print_jobs_v2.insert_one({
-            "_id": job_id,
-            "job_id": job_id,
-            "user_id": user_id,
-            "cups_job_id": None,
-            "filename": filename,
-            "file": file,
-            "color": color,
-            "copies": copies,
-            "status": status,
-            "logs": [creation_log],
-            "created_at": now_ts,
-            "updated_at": now_ts
-        })
+        job = PrintJob(
+            id=job_id,
+            user_id=user_id,
+            filename=filename,
+            file=file,
+            color=color,
+            copies=copies,
+            status=status,
+            logs=[creation_log],
+            created_at=now_ts,
+            updated_at=now_ts,
+        )
+
+        job_dict = job.model_dump()
+        job_dict["_id"] = job_id  # MongoDB requires _id
+
+        self.db.mongo.print_jobs_v2.insert_one(job_dict)
 
     def register_bulk_jobs(self, jobs):
         for job in jobs:
@@ -63,20 +67,16 @@ class Printer:
     
     def get_user_jobs(self, user, page=1, per_page=10):
         skip = (page - 1) * per_page
-        jobs = list(self.db.mongo.print_jobs_v2.find({"user_id": user}).sort("created_at", -1).skip(skip).limit(per_page))
-        for job in jobs:
-            del job["_id"]
-        return jobs
+        raw_jobs = list(self.db.mongo.print_jobs_v2.find({"user_id": user}).sort("created_at", -1).skip(skip).limit(per_page))
+        return [PrintJob.model_validate(j).to_safe().model_dump() for j in raw_jobs]
     
     def admin_get_pending_jobs(self, page=1, per_page=10):
         skip = (page - 1) * per_page
-        jobs = list(self.db.mongo.print_jobs_v2.find({"status": "pending"}).sort("created_at", -1).skip(skip).limit(per_page))
-        for job in jobs:
-            del job["_id"]
-        return jobs
+        raw_jobs = list(self.db.mongo.print_jobs_v2.find({"status": "pending"}).sort("created_at", -1).skip(skip).limit(per_page))
+        return [PrintJob.model_validate(j).model_dump() for j in raw_jobs]
     
     def get_job(self, id):
-        job = self.db.mongo.print_jobs_v2.find_one({"job_id": id})
-        if job:
-            del job["_id"]
-        return job
+        raw = self.db.mongo.print_jobs_v2.find_one({"_id": id})
+        if not raw:
+            return None
+        return PrintJob.model_validate(raw).to_safe().model_dump()

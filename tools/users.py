@@ -1,7 +1,7 @@
 from utils.database import Database
+from models.user import User, SafeUser
 import uuid
 import bcrypt
-import json
 import datetime
 
 class UserTools:
@@ -32,99 +32,90 @@ class UserTools:
         id = str(uuid.uuid4())
         now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
 
-        user = {
-            "_id": id, # MongoDB is annoying with ts.
-            "id": id,
-            "name": name,
-            "email": email,
-            "password": hashed_password,
-            "auth_methods": auth_methods,
-            "region": region,
-            "language": language,
-            "superadmin": False,
-            "admin": False,
-            "printer": {
-                "credits": 0,
-                "no_credits_action": "require_approval"
-            },
-            "permissions": [],
-            "suspended": False,
-            "created_at": now_ts,
-            "updated_at": now_ts
-        }
+        user = User(
+            id=id,
+            name=name,
+            email=email,
+            password=hashed_password,
+            auth_methods=auth_methods,
+            region=region,
+            language=language,
+            created_at=now_ts,
+            updated_at=now_ts,
+        )
 
-        self.db.mongo.users.insert_one(user)
+        user_dict = user.model_dump()
+        user_dict["_id"] = id  # MongoDB requires _id
 
-        self.db.redis.set(f"users.user:{id}", json.dumps(user), ex=10800)
+        self.db.mongo.users.insert_one(user_dict)
+
+        self.db.redis.set(f"users.user:{id}", user.model_dump_json(), ex=10800)
         self.db.redis.set(f"users.lookup.email:{email}", id, ex=10800)
 
         return "user_created"
-    
-    def get_user_by_id(self, id, safe=True):
-        
+
+    def _get_user_model(self, id) -> User | None:
+        """Internal helper: returns the full User model (with password) or None."""
         redis_user = self.db.redis.get(f"users.user:{id}")
         if redis_user:
-            real_user = json.loads(redis_user)
+            return User.model_validate_json(redis_user)
 
-        if not redis_user:
-            real_user = self.db.mongo.users.find_one({"id": id})
-
-        if not real_user:
+        raw = self.db.mongo.users.find_one({"id": id})
+        if not raw:
+            return None
+        user = User.model_validate(raw)
+        # Cache for future requests (3h)
+        self.db.redis.set(f"users.user:{id}", user.model_dump_json(), ex=10800)
+        self.db.redis.set(f"users.lookup.email:{user.email}", id, ex=10800)
+        return user
+    
+    def get_user_by_id(self, id, safe=True) -> User | SafeUser | str:
+        user = self._get_user_model(id)
+        if user is None:
             return "not_found"
-        
-
-        if not redis_user:
-            # If the user is not cached, cache it for future requests (3h)
-
-            self.db.redis.set(f"users.user:{id}", json.dumps(real_user), ex=10800)
-            self.db.redis.set(f"users.lookup.email:{real_user['email']}", id, ex=10800)
-        
-
         if safe:
-            del real_user["password"]
-        
-        if "_id" in real_user:
-            del real_user["_id"]
+            return SafeUser.model_validate(user.model_dump(exclude={"password"}))
+        return user
 
-        return real_user
-
-    def get_user_by_email(self, email, safe=True):
+    def get_user_by_email(self, email, safe=True) -> User | SafeUser | str:
         #TODO: There should be a better way to do this (Don't repeat yourself)
         
         redis_id = self.db.redis.get(f"users.lookup.email:{email}")
         if redis_id:
             return self.get_user_by_id(redis_id, safe=safe)
         
-        real_user = self.db.mongo.users.find_one({"email": email})
-        if not real_user:
+        raw = self.db.mongo.users.find_one({"email": email})
+        if not raw:
             return "not_found"
         
-        # Cache the user for future requests (3h)
-        self.db.redis.set(f"users.user:{real_user['id']}", json.dumps(real_user), ex=10800)
-        self.db.redis.set(f"users.lookup.email:{email}", real_user["id"], ex=10800)
+        user = User.model_validate(raw)
+        # Cache for future requests (3h)
+        self.db.redis.set(f"users.user:{user.id}", user.model_dump_json(), ex=10800)
+        self.db.redis.set(f"users.lookup.email:{email}", user.id, ex=10800)
 
         if safe:
-            del real_user["password"]
-        
-        del real_user["_id"]
-
-        return real_user
+            return SafeUser.model_validate(user.model_dump(exclude={"password"}))
+        return user
     
     def update_user(self, id, data):
-        user = self.get_user_by_id(id, False)
+        user = self._get_user_model(id)
 
-        if user == "not_found":
+        if user is None:
             return "not_found"
         
+        user_dict = user.model_dump()
         for key in data:
             if key not in ["suspended", "permissions", "admin", "superadmin", "password", "email", "created_at", "updated_at", "id"]:
-                user[key] = data[key]
+                user_dict[key] = data[key]
             else:
                 return "protected_field"
         
-        user["updated_at"] = datetime.datetime.now(datetime.timezone.utc).timestamp()
+        user_dict["updated_at"] = datetime.datetime.now(datetime.timezone.utc)
 
-        self.db.mongo.users.update_one({"id": id}, {"$set": user})
-        self.db.redis.set(f"users.user:{id}", json.dumps(user), ex=10800)
-        self.db.redis.set(f"users.lookup.email:{user['email']}", id, ex=10800)
+        user = User.model_validate(user_dict)
+        updated_dict = user.model_dump()
+
+        self.db.mongo.users.update_one({"id": id}, {"$set": updated_dict})
+        self.db.redis.set(f"users.user:{id}", user.model_dump_json(), ex=10800)
+        self.db.redis.set(f"users.lookup.email:{user.email}", id, ex=10800)
         return "user_updated"

@@ -48,10 +48,10 @@ def require_auth(func=None, *, return_safe_user=True, require_admin=False):
             if user == "not_found":
                 raise HTTPException(status_code=404, detail="User not found")
 
-            if user["suspended"]:
+            if user.suspended:
                 raise HTTPException(status_code=403, detail="User suspended")
             
-            if not user["admin"] and require_admin:
+            if not user.admin and require_admin:
                 raise HTTPException(status_code=403, detail="Admin required")
 
             request.state.user = user
