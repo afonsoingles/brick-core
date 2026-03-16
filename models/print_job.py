@@ -8,7 +8,7 @@ class PrintJobLog(BaseModel):
     id: str
     timestamp: datetime
     actor: str  # "system" or a user id
-    type: str   # e.g. "job_created", "job_accepted", "job_rejected"
+    type: str
     description: Optional[str] = None
 
     @model_validator(mode="before")

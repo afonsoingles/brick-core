@@ -30,7 +30,7 @@ class UserTools:
         
         hashed_password = self._hash_password(password)
         id = str(uuid.uuid4())
-        now_ts = datetime.datetime.now(datetime.timezone.utc)
+        now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
 
         user = User(
             id=id,
