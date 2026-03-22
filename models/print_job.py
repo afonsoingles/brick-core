@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
+from enum import Enum
 from typing import Optional
 from datetime import datetime
 import hashlib
@@ -24,6 +25,11 @@ class PrintJobLog(BaseModel):
             data.pop("job_id", None)
         return data
 
+class PrintJobStatus(str, Enum):
+    pending = "pending",
+    approved = "approved",
+    rejected = "rejected",
+    printed = "printed"
 
 class PrintJob(BaseModel):
     id: str
@@ -33,7 +39,7 @@ class PrintJob(BaseModel):
     file: str
     color: bool = True
     copies: int = 1
-    status: str
+    status: PrintJobStatus
     logs: list[PrintJobLog] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
@@ -45,6 +51,13 @@ class PrintJob(BaseModel):
         if isinstance(data, dict) and "job_id" in data and "id" not in data:
             data = dict(data)
             data["id"] = data.pop("job_id")
+
+        # Previously, status was stored as a string. Try to convert it to the enum if it's still a string.
+        if isinstance(data, dict) and isinstance(data.get("status"), str):
+            try:
+                data["status"] = PrintJobStatus[data["status"]]
+            except KeyError:
+                pass  # Leave as is if the status string is invalid
         return data
 
     def to_safe(self) -> "SafePrintJob":
