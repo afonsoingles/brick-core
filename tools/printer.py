@@ -13,4 +13,3 @@ class Printer:
         self.user_tools = UserTools()
         self.printer = PrinterConnector()
 
-    def register_print_job(self, user_)
