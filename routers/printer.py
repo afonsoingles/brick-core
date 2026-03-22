@@ -9,13 +9,13 @@ printer = Printer()
 @require_auth()
 async def get_print_jobs(request: Request, page: int = 1):
     
-    jobs = printer.get_user_jobs(request.state.user.id, page=page)
+    jobs = printer.get_user_jobs(request.state.user.id, page=page, safe= not request.state.user.admin)
     return {"success": True, "data": jobs or []}
 
 @router.get("/jobs/{id}")
 @require_auth()
 async def get_print_job(request: Request, id: str):
-    job = printer.get_job(id)
+    job = printer.get_job(id, safe=not request.state.user.admin) # admins can see full details, while regular users get SafePrintJob.
     if not job or job["user_id"] != request.state.user.id:
         return {"success": False, "message": "Job not found"}
     
