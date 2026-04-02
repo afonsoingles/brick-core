@@ -5,11 +5,25 @@ from dotenv import load_dotenv
 from routers.webhooks import router as webhooks_router
 from routers.authentication import router as authentication_router
 from routers.printer import router as printer_router
+from contextlib import asynccontextmanager
+from apscheduler.schedulers.background import BackgroundScheduler
+from tasks.printer_daemon import print_approved_jobs
 
 if not os.environ.get("DOPPLER_TOKEN"):
     load_dotenv()
 
-app = FastAPI()
+# Scheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(print_approved_jobs, 'interval', minutes=1)
+scheduler.start()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 env = os.environ.get("APP_ENVIRONMENT")
 

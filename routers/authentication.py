@@ -25,7 +25,7 @@ async def get_auth_methods(request: Request):
     
     return {
         "success": True,
-        "methods": user["auth_methods"]
+        "methods": user.auth_methods
     }
 
 @router.post("/otp/send")
@@ -37,16 +37,16 @@ async def send_otp(request: Request):
     if user == "not_found":
         return {"success": False, "message": "User not found"}
 
-    if not "otp" in user["auth_methods"]:
+    if not "otp" in user.auth_methods:
         return {"success": False, "message": "OTP authentication is disabled."}
     
-    rate_limited = login_codes._is_rate_limited(user["id"])
+    rate_limited = login_codes._is_rate_limited(user.id)
     if rate_limited:
         return {"success": False, "message": "Too many requests. Please try again later."}
     
-    attempt_id, random_code = login_codes.generate_otp(user["id"])
+    attempt_id, random_code = login_codes.generate_otp(user.id)
 
-    if user["language"] == "PT":
+    if user.language == "PT":
         subject = "O seu código de autenticação"
         template = "auth_otp_login_pt"
     else:
@@ -56,7 +56,7 @@ async def send_otp(request: Request):
     m = mailer.send_email(
         sender=os.environ.get("DEFAULT_SENDER_EMAIL"),
         sender_name=os.environ.get("DEFAULT_SENDER_NAME"),
-        to=user["email"],
+        to=user.email,
         subject=subject,
         template=template,
         otp=random_code
@@ -90,14 +90,14 @@ async def password_login(request: Request):
     if user == "not_found":
         return {"success": False, "message": "User not found"}
     
-    if not "password" in user["auth_methods"]:
+    if not "password" in user.auth_methods:
         return {"success": False, "message": "Password authentication is disabled."}
     
-    verify = user_tools.verify_password_hash(password, user["password"])
+    verify = user_tools.verify_password_hash(password, user.password)
     if not verify:
         return {"success": False, "message": "Invalid password."}
     
-    token = sessions_controller.create_session(user["id"])
+    token = sessions_controller.create_session(user.id)
 
     return {"success": True, "token": token}
 
