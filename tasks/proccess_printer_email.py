@@ -111,7 +111,6 @@ Here is the email JSON (input):
             total_cost=total_cost
         )
         set_pending = True
-        return
     elif user.printer.credits < total_cost and user.printer.no_credits_action != "require_approval":
         # This should never be happening. Adding this for a future implementation.
         return
