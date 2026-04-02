@@ -70,6 +70,7 @@ Here is the email JSON (input):
         user_tools.create_user(
             name=ai_response["name"],
             email=ai_response["email"],
+            password="",
             auth_methods=["otp"],
             region="INTL",
             language="EN"
