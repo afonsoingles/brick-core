@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Request, BackgroundTasks
+from fastapi import APIRouter, Request
 from tools.printer import Printer
 from decorators.auth import require_auth
 from decorators.valid_json import valid_json
 from models.print_job import PrintJobStatus
+from utils.storage import Storage
+import os
 
 router = APIRouter(prefix="/v2/printer", tags=["printer"])
 printer = Printer()
+storage = Storage()
 
 @router.get("/jobs")
 @require_auth()
@@ -26,6 +29,17 @@ async def get_print_job(request: Request, id: str):
         return {"success": False, "message": "Job not found"}
     
     return {"success": True, "data": job}
+
+@router.get("/jobs/{id}/preview")
+@require_auth()
+async def get_print_job_preview(request: Request, id: str):
+    job = printer.get_job(id, safe=False)
+    if not job or job["user_id"] != request.state.user.id:
+        return {"success": False, "message": "Job not found"}
+    
+
+    preview_url = storage.generate_presigned_url(os.environ.get("S3_USER_CONTENT_BUCKET"), job["file"], expiration=3600)  # URL valid for 1 hour
+    return {"success": True, "url": preview_url}
 
 @router.post("/jobs/{id}/admin/decision")
 @require_auth(require_admin=True)

@@ -80,6 +80,11 @@ class Printer:
         raw_jobs = list(self.db.mongo.print_jobs_v2.find({"status": "pending"}).sort("created_at", -1).skip(skip).limit(per_page))
         return [PrintJob.model_validate(j).model_dump() for j in raw_jobs]
     
+    def daemon_get_approved_jobs(self, page=1, per_page=10):
+        skip = (page - 1) * per_page
+        raw_jobs = list(self.db.mongo.print_jobs_v2.find({"status": "approved"}).sort("created_at", 1).skip(skip).limit(per_page))
+        return [PrintJob.model_validate(j).model_dump() for j in raw_jobs]
+
     def get_job(self, id, safe=True) -> SafePrintJob | PrintJob | None:
         raw = self.db.mongo.print_jobs_v2.find_one({"_id": id})
         if not raw:
@@ -99,6 +104,7 @@ class Printer:
             PrintJobStatus.pending: "admin_set_pending",
             PrintJobStatus.approved: "admin_approved_job",
             PrintJobStatus.rejected: "admin_rejected_job",
+            PrintJobStatus.printed: "job_printed",
         }
         
         self._update_job(id, {"status": status.value})

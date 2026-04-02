@@ -38,3 +38,6 @@ class Storage:
         )
         return upload
     
+    def get_file_data(self, bucket, key):
+        obj = self.s3.get_object(Bucket=bucket, Key=key)
+        return obj["Body"].read()
