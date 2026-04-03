@@ -73,7 +73,7 @@ class Printer:
     def get_user_jobs(self, user, page=1, per_page=10, safe=True):
         skip = (page - 1) * per_page
         raw_jobs = list(self.db.mongo.print_jobs_v2.find({"user_id": user}).sort("created_at", -1).skip(skip).limit(per_page))
-        return [SafePrintJob.model_validate(j).to_safe().model_dump() for j in raw_jobs] if safe else [PrintJob.model_validate(j).model_dump() for j in raw_jobs]
+        return [SafePrintJob.model_validate(j).model_dump() for j in raw_jobs] if safe else [PrintJob.model_validate(j).model_dump() for j in raw_jobs]
     
     def admin_get_pending_jobs(self, page=1, per_page=10):
         skip = (page - 1) * per_page
