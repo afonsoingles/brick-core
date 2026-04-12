@@ -102,7 +102,7 @@ Here is the email JSON (input):
     
     if user.printer.credits < total_cost and user.printer.no_credits_action == "require_approval":
         mailer.send_email(
-            sender_name="Brick Printer",
+            sender_name="Printer",
             sender_email=os.environ.get("PRINTER_EMAIL"),
             to=user.email,
             subject="Your print job is on hold",

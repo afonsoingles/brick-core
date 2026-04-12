@@ -13,7 +13,7 @@ class SessionsController:
     def create_session(self, user) -> str:
         now = datetime.datetime.now(datetime.timezone.utc).timestamp()
         payload = {
-            "iss": "brick-core",
+            "iss": "printer",
             "sub": user,
             "exp": now + 604800, # 7 days
             "iat": now,
